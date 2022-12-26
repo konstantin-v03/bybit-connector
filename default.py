@@ -16,20 +16,20 @@ def run(event, context):
         message = base64.b64decode(event['body']).decode('utf-8')
         dictionary = ast.literal_eval(message.replace("'", "\""))
 
-        pare = dictionary['ticker'].replace(".P", "")
+        ticker = dictionary['ticker'].replace(".P", "")
         action = dictionary['action']
         contracts = dictionary['contracts']
 
-        tg_send_message(f'{pare} {action} {contracts}')
+        tg_send_message(f'{ticker} {action} {contracts}')
 
         session_auth = usdt_perpetual.HTTP(endpoint="https://api.bybit.com",
                                            api_key=config.API_KEY, api_secret=config.SECRET_KEY)
 
-        response = ''
+        response = ""
 
         if action == 'long':
             response = session_auth.place_active_order(
-                symbol=pare,
+                symbol=ticker,
                 side='Buy',
                 order_type='Market',
                 qty=contracts,
@@ -39,7 +39,7 @@ def run(event, context):
 
         if action == 'Close entry(s) order long':
             response = session_auth.place_active_order(
-                symbol=pare,
+                symbol=ticker,
                 side='Sell',
                 order_type='Market',
                 qty=contracts,
@@ -49,7 +49,7 @@ def run(event, context):
 
         if action == 'short':
             response = session_auth.place_active_order(
-                symbol=pare,
+                symbol=ticker,
                 side='Sell',
                 order_type='Market',
                 qty=contracts,
@@ -59,7 +59,7 @@ def run(event, context):
 
         if action == 'Close entry(s) order short':
             response = session_auth.place_active_order(
-                symbol=pare,
+                symbol=ticker,
                 side='Buy',
                 order_type='Market',
                 qty=contracts,
@@ -67,7 +67,7 @@ def run(event, context):
                 reduce_only=True,
                 close_on_trigger=False)
 
-        print(response)
+        tg_send_message(str(response))
 
         response = {'statusCode': 200, 'body': 'Message was successfully sent!'}
     except Exception as e:
